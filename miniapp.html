@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Тредсы дружбы — Узнать кто</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="https://widget.cloudpayments.ru/bundles/cloudpayments.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      min-height: 100vh;
+      padding: 18px 16px max(28px, env(safe-area-inset-bottom));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+      background: var(--tg-theme-bg-color, #f4f6fa);
+      color: var(--tg-theme-text-color, #101010);
+    }
+
+    .card {
+      width: 100%;
+      max-width: 390px;
+      padding: 28px 22px 22px;
+      border: 1px solid rgba(16, 16, 16, 0.08);
+      border-radius: 24px;
+      background: var(--tg-theme-secondary-bg-color, #fff);
+      box-shadow: 0 16px 42px rgba(15, 23, 42, 0.14);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 18px;
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: 0;
+    }
+
+    .brand-icon {
+      width: 38px;
+      height: 38px;
+      display: grid;
+      place-items: center;
+      border-radius: 11px;
+      background: #050505;
+      color: #fff;
+      font-size: 24px;
+      font-weight: 800;
+    }
+
+    h1 {
+      margin-bottom: 8px;
+      text-align: center;
+      font-size: 24px;
+      line-height: 1.18;
+      font-weight: 800;
+    }
+
+    .subtitle {
+      margin: 0 auto 20px;
+      max-width: 310px;
+      text-align: center;
+      font-size: 15px;
+      line-height: 1.45;
+      color: var(--tg-theme-hint-color, #737373);
+    }
+
+    .hidden-block {
+      margin-bottom: 18px;
+      padding: 22px 18px;
+      border: 1.5px dashed #d7dde8;
+      border-radius: 18px;
+      background: #f7f8fb;
+      text-align: center;
+    }
+
+    .hidden-name {
+      font-size: 30px;
+      font-weight: 800;
+      color: #111;
+      filter: blur(8px);
+      user-select: none;
+    }
+
+    .hidden-label {
+      margin-top: 8px;
+      font-size: 13px;
+      color: #8a8f99;
+    }
+
+    .subscription-info {
+      margin-bottom: 16px;
+      padding: 16px;
+      border: 1px solid #e4e7ee;
+      border-radius: 16px;
+      background: #fbfcff;
+      text-align: left;
+    }
+
+    .info-title {
+      margin-bottom: 10px;
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .info-row {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      margin-bottom: 7px;
+      font-size: 14px;
+      line-height: 1.35;
+      color: #474b55;
+    }
+
+    .info-row:last-child { margin-bottom: 0; }
+
+    .email-input {
+      width: 100%;
+      height: 52px;
+      margin-bottom: 14px;
+      padding: 0 15px;
+      border: 1.5px solid #dcdfe7;
+      border-radius: 14px;
+      outline: none;
+      background: #fff;
+      color: #111;
+      font-size: 16px;
+    }
+
+    .email-input:focus { border-color: #111; }
+
+    .checks {
+      display: grid;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .check-row {
+      display: grid;
+      grid-template-columns: 22px 1fr;
+      gap: 10px;
+      align-items: flex-start;
+      padding: 12px;
+      border: 1px solid #e6e8ee;
+      border-radius: 14px;
+      background: #fff;
+      font-size: 13px;
+      line-height: 1.35;
+      color: #333842;
+    }
+
+    .check-row input {
+      width: 20px;
+      height: 20px;
+      margin-top: 1px;
+      accent-color: #111;
+    }
+
+    .check-row a {
+      color: #111;
+      font-weight: 700;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+
+    .pay-btn {
+      width: 100%;
+      min-height: 56px;
+      border: 0;
+      border-radius: 16px;
+      background: #111;
+      color: #fff;
+      font-size: 17px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: opacity 0.18s, transform 0.18s;
+    }
+
+    .pay-btn:active { transform: scale(0.99); }
+    .pay-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+    .price-note {
+      margin-top: 11px;
+      text-align: center;
+      font-size: 12px;
+      line-height: 1.35;
+      color: #8a8f99;
+    }
+
+    .result-block { display: none; text-align: center; }
+    .result-emoji { margin-bottom: 14px; font-size: 58px; }
+
+    .success-badge {
+      margin: 18px 0 12px;
+      padding: 14px 16px;
+      border-radius: 14px;
+      background: #edf8ef;
+      color: #24723a;
+      font-size: 15px;
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <section id="before-pay">
+      <div class="brand">
+        <div class="brand-icon">@</div>
+        <div>Тредсы дружбы</div>
+      </div>
+
+      <h1>Узнай кто прошёл твой тест</h1>
+      <p class="subtitle">Кто-то оставил тебе тредс дружбы. Открой имя отправителя.</p>
+
+      <div class="hidden-block">
+        <div class="hidden-name">Аноним</div>
+        <div class="hidden-label">Имя скрыто до оплаты</div>
+      </div>
+
+      <div class="subscription-info">
+        <div class="info-title">Что входит</div>
+        <div class="info-row"><span>🔓</span><span>Открытие имени отправителя</span></div>
+        <div class="info-row"><span>💳</span><span>Первый платёж — <b>19 ₽</b> за 1 день</span></div>
+        <div class="info-row"><span>👑</span><span>Далее подписка — <b>499 ₽</b> за 5 дней</span></div>
+        <div class="info-row"><span>🚫</span><span>Отмена подписки — команда <b>/cancelvip</b></span></div>
+      </div>
+
+      <input class="email-input" type="email" id="email-input" placeholder="Ваш email для чека" autocomplete="email" required>
+
+      <div class="checks">
+        <label class="check-row">
+          <input type="checkbox" id="subscription-check">
+          <span>Согласен(на) на подписку: первый день 19 ₽, далее 499 ₽ за 5 дней до отмены.</span>
+        </label>
+
+        <label class="check-row">
+          <input type="checkbox" id="terms-check">
+          <span>
+            Согласен(на) с
+            <a href="https://graph.org/PUBLICHNAYA-OFERTA-POLZOVATELSKOE-SOGLASHENIE-03-31" target="_blank" rel="noopener">офертой</a>
+            и
+            <a href="https://graph.org/POLITIKA-KONFIDENCIALNOSTI-03-31-70" target="_blank" rel="noopener">политикой конфиденциальности</a>.
+          </span>
+        </label>
+      </div>
+
+      <button class="pay-btn" id="pay-btn" onclick="startPayment()">🔓 Узнать за 19 ₽</button>
+      <p class="price-note">После оплаты имя придёт в чат с ботом через несколько секунд.</p>
+    </section>
+
+    <section class="result-block" id="after-pay">
+      <div class="result-emoji">✅</div>
+      <h1>Оплата прошла</h1>
+      <div class="success-badge">Имя отправителя скоро придёт в бот</div>
+      <p class="subtitle">Вернись в чат с FriendThreadsBot.</p>
+    </section>
+  </main>
+
+  <script>
+    const tg = window.Telegram?.WebApp;
+    if (tg) {
+      tg.ready();
+      tg.expand();
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    const compId = params.get('comp_id') || '';
+    const revealToken = params.get('reveal_token') || '';
+    const ownerId = params.get('owner_id') || '';
+    const telegramUserId = tg?.initDataUnsafe?.user?.id || '';
+
+    const emailInput = document.getElementById('email-input');
+    const subscriptionCheck = document.getElementById('subscription-check');
+    const termsCheck = document.getElementById('terms-check');
+    const payBtn = document.getElementById('pay-btn');
+
+    emailInput.addEventListener('focus', function() {
+      setTimeout(() => this.scrollIntoView({ behavior: 'smooth', block: 'center' }), 250);
+    });
+
+    function validateEmail(email) {
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    }
+
+    function validateForm() {
+      const email = emailInput.value.trim();
+      if (!validateEmail(email)) {
+        alert('Введите корректный email для чека');
+        return false;
+      }
+      if (!subscriptionCheck.checked) {
+        alert('Подтвердите согласие на подписку 499 ₽ за 5 дней');
+        return false;
+      }
+      if (!termsCheck.checked) {
+        alert('Подтвердите согласие с офертой и политикой конфиденциальности');
+        return false;
+      }
+      if (!ownerId && !telegramUserId) {
+        alert('Не удалось определить пользователя. Откройте оплату из Telegram');
+        return false;
+      }
+      if (!compId && !revealToken) {
+        alert('Не найден запрос на раскрытие имени. Вернитесь в бот и нажмите кнопку ещё раз');
+        return false;
+      }
+      return true;
+    }
+
+    function setLoading(isLoading) {
+      payBtn.disabled = isLoading;
+      payBtn.textContent = isLoading ? '⏳ Открываем оплату...' : '🔓 Узнать за 19 ₽';
+    }
+
+    function startPayment() {
+      if (!validateForm()) return;
+
+      setLoading(true);
+
+      const email = emailInput.value.trim();
+      const payerId = String(telegramUserId || ownerId);
+      const invoiceTarget = compId || revealToken || 'unknown';
+      const widget = new cp.CloudPayments();
+
+      widget.pay('auth', {
+        publicId: 'pk_f4047aa2683945bbb23e6b6f0aa86',
+        description: 'Подписка Тредсы Дружбы — 1 день за 19 ₽, далее 499 ₽ за 5 дней',
+        amount: 19,
+        currency: 'RUB',
+        invoiceId: 'friend_threads_' + invoiceTarget + '_' + Date.now(),
+        accountId: payerId,
+        email: email,
+        data: {
+          comp_id: compId,
+          reveal_token: revealToken,
+          owner_id: ownerId || payerId,
+          user_id: ownerId || payerId,
+          first_payment_amount: 19,
+          recurrent_amount: 499,
+          recurrent_days: 5,
+          product: 'friend_threads_reveal'
+        }
+      }, {
+        onSuccess: function() {
+          showSuccess();
+        },
+        onFail: function() {
+          setLoading(false);
+        },
+        onComplete: function(result) {
+          if (!result || result.success === false) setLoading(false);
+        }
+      });
+    }
+
+    function showSuccess() {
+      document.getElementById('before-pay').style.display = 'none';
+      document.getElementById('after-pay').style.display = 'block';
+      setTimeout(() => {
+        if (tg) tg.close();
+      }, 4000);
+    }
+  </script>
+</body>
+</html>
